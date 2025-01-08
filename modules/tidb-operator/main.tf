@@ -70,127 +70,128 @@ resource "helm_release" "tidb-operator" {
   name       = "tidb-operator"
 }
 
-# resource "helm_release" "tidb-cluster" {
-#   provider   = helm.initial
-#   depends_on = [helm_release.tidb-operator]
-#  
-#   repository = "https://charts.pingcap.org/"
-#   chart      = "tidb-cluster"
-#   version    = var.tidb_cluster_chart_version
-#   namespace  = "tidb-cluster"
-#   name       = var.cluster_name
-#   wait       = false
-#  
-#   values = [ 
-#     var.base_values,
-#     var.override_values
-#   ]
-#  
+resource "helm_release" "tidb-cluster" {
+  provider   = helm.initial
+  depends_on = [helm_release.tidb-operator]
+ 
+  repository = "https://charts.pingcap.org/"
+  # chart      = "tidb-cluster"      # It's not required any more after upgrade
+  chart      = "tidb-operator"
+  version    = var.tidb_cluster_chart_version
+  namespace  = "tidb-cluster"
+  name       = var.cluster_name
+  wait       = false
+ 
+  values = [ 
+    var.base_values,
+    var.override_values
+  ]
+ 
+  set {
+    name  = "pd.image"
+    value = "pingcap/pd:${var.cluster_version}"
+  }
+  set {
+    name  = "pd.replicas"
+    value = var.pd_count
+  }
+  set {
+    name  = "pd.storageClassName"
+    value = "managed-csi"
+  }
+  set {
+    name  = "pd.nodeSelector.dedicated"
+    value = "${var.cluster_name}-pd"
+  }
+  set {
+    name  = "pd.tolerations[0].key"
+    value = "dedicated"
+  }
+  set {
+    name  = "pd.tolerations[0].value"
+    value = "${var.cluster_name}-pd"
+  }
+  set {
+    name  = "pd.tolerations[0].operator"
+    value = "Equal"
+  }
+  set {
+    name  = "pd.tolerations[0].effect"
+    value = "NoSchedule"
+  }
+  set {
+    name  = "tikv.image"
+    value = "pingcap/tikv:${var.cluster_version}"
+  }
+  set {
+    name  = "tikv.replicas"
+    value = var.tikv_count
+  }
+  set {
+    name  = "tikv.storageClassName"
+    value = "managed-csi"
+  }
+  set {
+    name  = "tikv.nodeSelector.dedicated"
+    value = "${var.cluster_name}-tikv"
+  }
+  set {
+    name  = "tikv.tolerations[0].key"
+    value = "dedicated"
+  }
+  set {
+    name  = "tikv.tolerations[0].value"
+    value = "${var.cluster_name}-tikv"
+  }
+  set {
+    name  = "tikv.tolerations[0].operator"
+    value = "Equal"
+  }
+  set {
+    name  = "tikv.tolerations[0].effect"
+    value = "NoSchedule"
+  }
+  set {
+    name  = "tidb.image"
+    value = "pingcap/tidb:${var.cluster_version}"
+  }
+  set {
+    name  = "tidb.nodeSelector.dedicated"
+    value = "${var.cluster_name}-tidb"
+  }
+  set {
+    name  = "tidb.tolerations[0].key"
+    value = "dedicated"
+  }
+  set {
+    name  = "tidb.tolerations[0].value"
+    value = "${var.cluster_name}-tidb"
+  }
+  set {
+    name  = "tidb.tolerations[0].operator"
+    value = "Equal"
+  }
+  set {
+    name  = "tidb.tolerations[0].effect"
+    value = "NoSchedule"
+  }
+  # https://docs.pingcap.com/tidb-in-kubernetes/stable/configure-a-tidb-cluster
+  # tidb.service.type in (LoadBalancer / ClusterIP / NodePort)
+  set {
+    name  = "tidb.service.type"
+    value = "LoadBalancer"
+  }
 #   set {
-#     name  = "pd.image"
-#     value = "pingcap/pd:${var.cluster_version}"
+#     name  = "tiproxy.baseImage"
+#     value = "pingcap/tiproxy"
 #   }
 #   set {
-#     name  = "pd.replicas"
-#     value = var.pd_count
+#     name  = "tiproxy.replicas"
+#     value = 2
 #   }
 #   set {
-#     name  = "pd.storageClassName"
-#     value = "managed-csi"
+#     name  = "tiproxy.version"
+#     value = "${var.cluster_version}"
 #   }
-#   set {
-#     name  = "pd.nodeSelector.dedicated"
-#     value = "${var.cluster_name}-pd"
-#   }
-#   set {
-#     name  = "pd.tolerations[0].key"
-#     value = "dedicated"
-#   }
-#   set {
-#     name  = "pd.tolerations[0].value"
-#     value = "${var.cluster_name}-pd"
-#   }
-#   set {
-#     name  = "pd.tolerations[0].operator"
-#     value = "Equal"
-#   }
-#   set {
-#     name  = "pd.tolerations[0].effect"
-#     value = "NoSchedule"
-#   }
-#   set {
-#     name  = "tikv.image"
-#     value = "pingcap/tikv:${var.cluster_version}"
-#   }
-#   set {
-#     name  = "tikv.replicas"
-#     value = var.tikv_count
-#   }
-#   set {
-#     name  = "tikv.storageClassName"
-#     value = "managed-csi"
-#   }
-#   set {
-#     name  = "tikv.nodeSelector.dedicated"
-#     value = "${var.cluster_name}-tikv"
-#   }
-#   set {
-#     name  = "tikv.tolerations[0].key"
-#     value = "dedicated"
-#   }
-#   set {
-#     name  = "tikv.tolerations[0].value"
-#     value = "${var.cluster_name}-tikv"
-#   }
-#   set {
-#     name  = "tikv.tolerations[0].operator"
-#     value = "Equal"
-#   }
-#   set {
-#     name  = "tikv.tolerations[0].effect"
-#     value = "NoSchedule"
-#   }
-#   set {
-#     name  = "tidb.image"
-#     value = "pingcap/tidb:${var.cluster_version}"
-#   }
-#   set {
-#     name  = "tidb.nodeSelector.dedicated"
-#     value = "${var.cluster_name}-tidb"
-#   }
-#   set {
-#     name  = "tidb.tolerations[0].key"
-#     value = "dedicated"
-#   }
-#   set {
-#     name  = "tidb.tolerations[0].value"
-#     value = "${var.cluster_name}-tidb"
-#   }
-#   set {
-#     name  = "tidb.tolerations[0].operator"
-#     value = "Equal"
-#   }
-#   set {
-#     name  = "tidb.tolerations[0].effect"
-#     value = "NoSchedule"
-#   }
-#   # https://docs.pingcap.com/tidb-in-kubernetes/stable/configure-a-tidb-cluster
-#   # tidb.service.type in (LoadBalancer / ClusterIP / NodePort)
-#   set {
-#     name  = "tidb.service.type"
-#     value = "LoadBalancer"
-#   }
-# #   set {
-# #     name  = "tiproxy.baseImage"
-# #     value = "pingcap/tiproxy"
-# #   }
-# #   set {
-# #     name  = "tiproxy.replicas"
-# #     value = 2
-# #   }
-# #   set {
-# #     name  = "tiproxy.version"
-# #     value = "${var.cluster_version}"
-# #   }
-# }
-# 
+}
+

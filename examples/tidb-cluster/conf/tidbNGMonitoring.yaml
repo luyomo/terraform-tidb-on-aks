@@ -1,0 +1,15 @@
+apiVersion: pingcap.com/v1alpha1
+kind: TidbNGMonitoring
+metadata:
+  name: tidb-on-aks-demo
+spec:
+  clusters:
+  - name: tidb-on-aks-demo
+    namespace: tidb-cluster
+  ngMonitoring:
+    # storageClassName: default
+    storageClassName: tidb-managed-csi
+    requests:
+      storage: 10Gi
+    version: v8.1.0
+    baseImage: pingcap/ng-monitoring

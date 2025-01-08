@@ -1,34 +1,33 @@
 variable "register_app_client_id" {}
 variable "register_app_client_secret" {}
 
-module "masteraks" {
+module "akscluster" {
     source = "../../modules/aks"
 
-    cluster_name = "tidb-on-aks-demo"                                  # Cluster Name
-    k8s_version = "1.30.0"                                             # K8S version
-#    ticdc_node_count = 3                                              # Number TiCDC nodes
-    kube_config_file = "/tmp/master_kubeconfig"                        # K8S Config file 
-    cluster_version = "v7.5.2"                                         # TiDB Version
+    cluster_name    = var.cluster_name                                 # Cluster Name
+    resource_group  = "jp-presale-test"                                # resource group name in which AKS is created
+    k8s_version     = "1.30.0"                                         # K8S version
 
-    register_app_client_id = "${var.register_app_client_id}"           # Azure APP Registration client id
+    tiflash_node_count = 2
+
+    register_app_client_id     = "${var.register_app_client_id}"       # Azure APP Registration client id
     register_app_client_secret = "${var.register_app_client_secret}"   # Azure APP Registration secret id
-    resource_group = "jp-presale-test"                                 # resource group name in which AKS is created
+    kube_config_file           = "/tmp/master_kubeconfig"              # K8S Config file 
 }
 
-module "mastertidb" {
+module "tidbcluster" {
     # depends_on = [module.masteraks]
 
     source = "../../modules/tidb-operator"
 
-    cluster_name = "tidb-on-aks-demo"                                  # Cluster Name 
-    k8s_version = "1.30.0"                                             # K8S version
-#    ticdc_node_count = 3                                              # Number of TiCDC nodes
-    kube_config_file = "/tmp/master_kubeconfig"
+    cluster_name = var.cluster_name                                    # Cluster Name 
     cluster_version = "v7.5.2"                                         # TiDB Version
-    kube_config      = module.masteraks.kube_config
-    cluster_ca_cert = module.masteraks.cluster_ca_certificate
-    client_certificate = module.masteraks.client_certificate
-    client_key = module.masteraks.client_key
-    cluster_endpoint = module.masteraks.host
+
+
+    kube_config        = module.akscluster.kube_config
+    cluster_ca_cert    = module.akscluster.cluster_ca_certificate
+    client_certificate = module.akscluster.client_certificate
+    client_key         = module.akscluster.client_key
+    cluster_endpoint   = module.akscluster.host
 
 }

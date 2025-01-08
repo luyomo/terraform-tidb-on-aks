@@ -10,11 +10,11 @@ variable "cluster_name" {
   description = "Cluster name ID"
 }
 
-variable "cluster_version" {
-  type        = string
-  default     = "v6.5.4"
-  description = "TiDB Cluster version"
-}
+# variable "cluster_version" {
+#   type        = string
+#   default     = "v6.5.4"
+#   description = "TiDB Cluster version"
+# }
 
 # variable "resource_group_name_prefix" {
 #   type        = string

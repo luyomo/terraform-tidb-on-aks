@@ -1,8 +1,8 @@
-variable "resource_group_location" {
-  type        = string
-  default     = "eastus"
-  description = "Location of the resource group."
-}
+# variable "resource_group_location" {
+#   type        = string
+#   default     = "eastus"
+#   description = "Location of the resource group."
+# }
 
 variable "cluster_name" {
   type        = string
@@ -16,11 +16,11 @@ variable "cluster_version" {
   description = "TiDB Cluster version"
 }
 
-variable "resource_group_name_prefix" {
-  type        = string
-  default     = "rg"
-  description = "Prefix of the resource group name that's combined with a random ID so name is unique in your Azure subscription."
-}
+# variable "resource_group_name_prefix" {
+#   type        = string
+#   default     = "rg"
+#   description = "Prefix of the resource group name that's combined with a random ID so name is unique in your Azure subscription."
+# }
 
 variable "node_count" {
   type        = number
@@ -28,11 +28,11 @@ variable "node_count" {
   default     = 1
 }
 
-variable "k8s_version" {
-  type        = string
-  description = "K8S version"
-  default     = "1.25.11"
-}
+# variable "k8s_version" {
+#   type        = string
+#   description = "K8S version"
+#   default     = "1.25.11"
+# }
 
 variable "msi_id" {
   type        = string
@@ -64,11 +64,11 @@ variable "ticdc_node_count" {
   default     = 3
 }
 
-variable "kube_config_file" {
-  type        = string
-  description = "The kube config file"
-  default     = "~/"
-}
+# variable "kube_config_file" {
+#   type        = string
+#   description = "The kube config file"
+#   default     = "~/"
+# }
 
 variable "operator_version" {
   type        = string
@@ -88,7 +88,7 @@ variable "override_values" {
 
 variable "tidb_cluster_chart_version" {
   description = "tidb-cluster chart version"
-  default     = "v1.6.0"
+  default     = "v1.5.1"
 }
 
 variable "kube_config" {

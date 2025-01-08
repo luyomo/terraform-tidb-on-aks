@@ -1,0 +1,139 @@
+apiVersion: pingcap.com/v1alpha1
+kind: TidbCluster
+metadata:
+  name: tidb-on-aks-demo
+spec:
+  version: v8.1.0
+  timezone: UTC
+  configUpdateStrategy: RollingUpdate
+  pvReclaimPolicy: Retain
+  schedulerName: default-scheduler
+  topologySpreadConstraints:
+  - topologyKey: topology.kubernetes.io/zone
+  enableDynamicConfiguration: true
+  helper:
+    image: alpine:3.16.0
+  pd:
+    baseImage: pingcap/pd
+    maxFailoverCount: 0
+    replicas: 3
+    storageClassName: tidb-managed-csi
+    requests:
+      storage: "10Gi"
+    config: |
+      [dashboard]
+        internal-proxy = true
+      [replication]
+        location-labels = ["topology.kubernetes.io/zone", "kubernetes.io/hostname"]
+        max-replicas = 3
+    nodeSelector:
+      dedicated: tidb-on-aks-demo-pd
+    tolerations:
+    - effect: NoSchedule
+      key: dedicated
+      operator: Equal
+      value: tidb-on-aks-demo-pd
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/component
+              operator: In
+              values:
+              - tidb-on-aks-demo-pd
+          topologyKey: kubernetes.io/hostname
+  tikv:
+    baseImage: pingcap/tikv
+    maxFailoverCount: 0
+    replicas: 3
+    storageClassName: tidb-managed-csi
+    requests:
+      storage: "100Gi"
+    config: {}
+    nodeSelector:
+      dedicated: tidb-on-aks-demo-tikv
+    tolerations:
+    - effect: NoSchedule
+      key: dedicated
+      operator: Equal
+      value: tidb-on-aks-demo-tikv
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/component
+              operator: In
+              values:
+              - tidb-on-aks-demo-tikv
+          topologyKey: kubernetes.io/hostname
+  tidb:
+    baseImage: pingcap/tidb
+    maxFailoverCount: 0
+    replicas: 4
+    service:
+#      annotations:
+#        service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+      exposeStatus: true
+      externalTrafficPolicy: Local
+      type: LoadBalancer
+    config: |
+      [performance]
+        tcp-keep-alive = true
+    annotations:
+      tidb.pingcap.com/sysctl-init: "true"
+    podSecurityContext:
+      sysctls:
+      - name: net.ipv4.tcp_keepalive_time
+        value: "300"
+      - name: net.ipv4.tcp_keepalive_intvl
+        value: "75"
+      - name: net.core.somaxconn
+        value: "32768"
+    separateSlowLog: true
+    nodeSelector:
+      dedicated: tidb-on-aks-demo-tidb
+    tolerations:
+    - effect: NoSchedule
+      key: dedicated
+      operator: Equal
+      value: tidb-on-aks-demo-tidb
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/component
+              operator: In
+              values:
+              - tidb-on-aks-demo-tidb
+          topologyKey: kubernetes.io/hostname
+
+  tiflash:
+    baseImage: pingcap/tiflash
+    maxFailoverCount: 0
+    replicas: 3
+    storageClaims:
+    - resources:
+        requests:
+          storage: 100Gi
+      storageClassName: tidb-managed-csi
+    config: {}
+    nodeSelector:
+      dedicated: tidb-on-aks-demo-tiflash
+    tolerations:
+    - effect: NoSchedule
+      key: dedicated
+      operator: Equal
+      value: tidb-on-aks-demo-tiflash
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/component
+              operator: In
+              values:
+              - tidb-on-aks-demo-tiflash
+          topologyKey: kubernetes.io/hostname

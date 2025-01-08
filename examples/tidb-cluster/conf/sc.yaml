@@ -1,0 +1,17 @@
+allowVolumeExpansion: true
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  labels:
+    addonmanager.kubernetes.io/mode: EnsureExists
+    kubernetes.io/cluster-service: "true"
+  name: tidb-managed-csi
+# https://learn.microsoft.com/en-us/rest/api/storagerp/srp_sku_types
+parameters:
+  skuname: StandardSSD_LRS
+provisioner: disk.csi.azure.com
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+mountOptions:
+  - nodelalloc
+  - noatime
